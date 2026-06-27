@@ -56,7 +56,7 @@ def file_edit_loop_iterations():
             Iteration(
                 session_id="file-loop",
                 agent_type=AgentType.CURSOR,
-                prompt=f"Edit main.py again",
+                prompt="Edit main.py again",
                 files_changed=["main.py"],
                 success=True,
             )

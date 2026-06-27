@@ -150,7 +150,7 @@ def check(ctx, session_id, window):
     ))
 
     if result.is_loop:
-        console.print(f"\n[bold red]⚠ Loop detected![/bold red]")
+        console.print("\n[bold red]⚠ Loop detected![/bold red]")
         console.print(f"  Type: {result.loop_type}")
         console.print(f"  Iterations analyzed: {result.iteration_count}")
         if result.repeated_files:
@@ -158,7 +158,7 @@ def check(ctx, session_id, window):
         if result.repeated_errors:
             console.print(f"  Repeated errors: {result.repeated_errors[0][:60]}...")
     else:
-        console.print(f"\n[bold green]✓ No loop detected.[/bold green]")
+        console.print("\n[bold green]✓ No loop detected.[/bold green]")
         console.print(f"  Iterations analyzed: {result.iteration_count}")
 
     # Suggestions
@@ -257,7 +257,7 @@ def sessions(ctx):
 
     console.print(f"[bold]Sessions ({len(session_ids)}):[/bold]")
     for sid in session_ids:
-        iterations = storage.get_iterations(session_id=sid, limit=1)
+        storage.get_iterations(session_id=sid, limit=1)
         count = len(storage.get_iterations(session_id=sid, limit=9999))
         console.print(f"  [cyan]{sid}[/cyan] ({count} iterations)")
 

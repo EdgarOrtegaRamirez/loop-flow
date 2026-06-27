@@ -3,7 +3,6 @@
 import subprocess
 import sys
 
-import pytest
 
 
 def _run_cli(*args):
@@ -12,7 +11,6 @@ def _run_cli(*args):
         [sys.executable, "-m", "loopflow.cli.main", *args],
         capture_output=True,
         text=True,
-        cwd="/root/workspace/loop-flow",
     )
     return result
 

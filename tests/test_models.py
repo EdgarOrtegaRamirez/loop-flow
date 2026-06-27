@@ -1,7 +1,6 @@
 """Tests for LoopFlow models."""
 
 import pytest
-from pydantic import ValidationError
 
 from loopflow.models import AgentType, Iteration, LoopDetection, LoopSeverity
 
