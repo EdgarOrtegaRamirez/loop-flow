@@ -1,116 +1,109 @@
 """Tests for LoopFlow CLI."""
 
-import subprocess
-import sys
+import pytest
+from click.testing import CliRunner
+
+from loopflow.cli.main import main
 
 
-
-def _run_cli(*args):
-    """Run the loop-flow CLI with given arguments."""
-    result = subprocess.run(
-        [sys.executable, "-m", "loopflow.cli.main", *args],
-        capture_output=True,
-        text=True,
-    )
-    return result
+@pytest.fixture
+def runner():
+    """Create a Click CliRunner."""
+    return CliRunner()
 
 
 class TestCLI:
     """Tests for the CLI interface."""
 
-    def test_version(self):
+    def test_version(self, runner):
         """Test version command."""
-        result = _run_cli("version")
-        assert result.returncode == 0
-        assert "LoopFlow" in result.stdout
+        result = runner.invoke(main, ["version"])
+        assert result.exit_code == 0
+        assert "LoopFlow" in result.output
 
-    def test_help(self):
+    def test_help(self, runner):
         """Test help output."""
-        result = _run_cli("--help")
-        assert result.returncode == 0
-        assert "LoopFlow" in result.stdout
-        assert "add" in result.stdout
-        assert "list" in result.stdout
-        assert "check" in result.stdout
-        assert "stats" in result.stdout
+        result = runner.invoke(main, ["--help"])
+        assert result.exit_code == 0
+        assert "LoopFlow" in result.output
+        assert "add" in result.output
+        assert "list" in result.output
+        assert "check" in result.output
+        assert "stats" in result.output
 
-    def test_sample_config(self):
+    def test_sample_config(self, runner):
         """Test sample-config command."""
-        result = _run_cli("sample-config")
-        assert result.returncode == 0
-        assert "LoopFlow Configuration" in result.stdout
+        result = runner.invoke(main, ["sample-config"])
+        assert result.exit_code == 0
+        assert "LoopFlow Configuration" in result.output
 
-    def test_add_iteration(self, tmp_path):
+    def test_add_iteration(self, runner, tmp_path):
         """Test adding an iteration."""
         db = str(tmp_path / "test.db")
-        result = _run_cli(
-            "--db", db,
-            "add", "test-session", "Fix the bug",
-            "--agent", "claude-code",
-            "--files", "main.py",
-            "--success",
-            "--tokens", "1000",
+        result = runner.invoke(
+            main,
+            ["--db", db, "add", "test-session", "Fix the bug",
+             "--agent", "claude-code", "--files", "main.py",
+             "--success", "--tokens", "1000"],
         )
-        assert result.returncode == 0
-        assert "Added iteration" in result.stdout
+        assert result.exit_code == 0
+        assert "Added iteration" in result.output
 
-    def test_list_empty(self, tmp_path):
+    def test_list_empty(self, runner, tmp_path):
         """Test listing when no iterations exist."""
         db = str(tmp_path / "test.db")
-        result = _run_cli("--db", db, "list")
-        assert result.returncode == 0
-        assert "No iterations found" in result.stdout
+        result = runner.invoke(main, ["--db", db, "list"])
+        assert result.exit_code == 0
+        assert "No iterations found" in result.output
 
-    def test_list_after_add(self, tmp_path):
+    def test_list_after_add(self, runner, tmp_path):
         """Test listing after adding iterations."""
         db = str(tmp_path / "test.db")
-        _run_cli("--db", db, "add", "test-session", "First prompt", "--files", "main.py")
-        _run_cli("--db", db, "add", "test-session", "Second prompt", "--files", "utils.py")
-        result = _run_cli("--db", db, "list", "test-session")
-        assert result.returncode == 0
-        assert "First" in result.stdout or "Second" in result.stdout
+        runner.invoke(main, ["--db", db, "add", "test-session", "First prompt", "--files", "main.py"])
+        runner.invoke(main, ["--db", db, "add", "test-session", "Second prompt", "--files", "utils.py"])
+        result = runner.invoke(main, ["--db", db, "list", "test-session"])
+        assert result.exit_code == 0
+        assert "First" in result.output or "Second" in result.output
 
-    def test_check_no_data(self, tmp_path):
+    def test_check_no_data(self, runner, tmp_path):
         """Test check command with no data."""
         db = str(tmp_path / "test.db")
-        result = _run_cli("--db", db, "check")
-        assert result.returncode == 0
-        assert "No iterations to analyze" in result.stdout
+        result = runner.invoke(main, ["--db", db, "check"])
+        assert result.exit_code == 0
+        assert "No iterations to analyze" in result.output
 
-    def test_stats_no_data(self, tmp_path):
+    def test_stats_no_data(self, runner, tmp_path):
         """Test stats command with no data."""
         db = str(tmp_path / "test.db")
-        result = _run_cli("--db", db, "stats")
-        assert result.returncode == 0
-        assert "No data to show" in result.stdout
+        result = runner.invoke(main, ["--db", db, "stats"])
+        assert result.exit_code == 0
+        assert "No data to show" in result.output
 
-    def test_clear_session(self, tmp_path):
+    def test_clear_session(self, runner, tmp_path):
         """Test clearing a session."""
         db = str(tmp_path / "test.db")
-        _run_cli("--db", db, "add", "test-session", "Prompt", "--files", "main.py")
-        result = _run_cli("--db", db, "clear", "test-session")
-        assert result.returncode == 0
-        assert "Deleted" in result.stdout
+        runner.invoke(main, ["--db", db, "add", "test-session", "Prompt", "--files", "main.py"])
+        result = runner.invoke(main, ["--db", db, "clear", "test-session"])
+        assert result.exit_code == 0
+        assert "Deleted" in result.output
 
-    def test_sessions_empty(self, tmp_path):
+    def test_sessions_empty(self, runner, tmp_path):
         """Test sessions command with no sessions."""
         db = str(tmp_path / "test.db")
-        result = _run_cli("--db", db, "sessions")
-        assert result.returncode == 0
-        assert "No sessions found" in result.stdout
+        result = runner.invoke(main, ["--db", db, "sessions"])
+        assert result.exit_code == 0
+        assert "No sessions found" in result.output
 
-    def test_check_with_loop_data(self, tmp_path):
+    def test_check_with_loop_data(self, runner, tmp_path):
         """Test check command with loop-inducing data."""
         db = str(tmp_path / "test.db")
         for i in range(5):
-            _run_cli(
-                "--db", db,
-                "add", "loop-session",
-                f"Fix attempt {i+1}",
-                "--files", "main.py",
-                "--error", "Same error",
-                "--failure",
+            runner.invoke(
+                main,
+                ["--db", db, "add", "loop-session",
+                 f"Fix attempt {i+1}", "--files", "main.py",
+                 "--error", "Same error", "--failure"],
             )
-        result = _run_cli("--db", db, "check", "loop-session")
-        assert result.returncode == 0
-        assert "Loop" in result.stdout
+        result = runner.invoke(main, ["--db", db, "check", "loop-session"])
+        assert result.exit_code == 0
+        assert "Loop" in result.output
